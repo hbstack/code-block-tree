@@ -1,0 +1,33 @@
+{{ $files := slice }}
+{{ $parents := newScratch }}
+{{ $title := .Title }}
+{{ range $i, $line := findRE `.+\n?` .Inner }}
+  {{ $name := strings.TrimLeft " " $line | chomp }}
+  {{ $level := 0 }}
+  {{ $pid := -1 }}
+  {{ with findRESubmatch `^(│\s{2}|├──|└──)(.*)\s(.+)$` $name 1 }}
+    {{ $match := index . 0 }}
+    {{ $name = index $match 3 }}
+    {{ $intent := index $match 2 | strings.RuneCount }}
+    {{ if gt $intent 0 }}
+      {{ $level = div $intent 4 }}
+      {{ with $parents.Get (sub $level 1 | string) }}
+        {{ $pid = . }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  {{ $file := dict
+    "id" $i
+    "name" $name
+    "pid" $pid
+  }}
+  {{ $files = $files | append $file }}
+  {{ $parents.Set (string $level) $i }}
+{{ end }}
+
+<div class="hb-code-block-tree-container bg-body-tertiary text-body position-relative p-2{{ cond $title ` pt-4` `` }}">
+  {{ with $title }}
+  <small class="hb-code-block-tree-title position-absolute top-0 start-0 text-bg-secondary px-1 user-select-all">{{ . }}</small>
+  {{ end }}
+  {{ partial "hb/modules/code-block-tree/walk" (dict "Files" $files "PID" -1) }}
+</div>

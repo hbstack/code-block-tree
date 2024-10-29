@@ -1,0 +1,29 @@
+{{ $files := .Files }}
+{{ if lt .PID 0 }}
+  {{ $files = where $files "pid" -1 }}
+{{ else }}
+  {{ $files = where $files "pid" .PID }}
+{{ end }}
+{{ with $files }}
+  <div class="hb-code-block-tree{{ cond (eq $.PID -1) `` ` hb-code-block-tree-child border-start ms-1 ps-4` }}">
+    {{ range . }}
+        {{ $children := where $.Files "pid" .id }}
+      <div class="hb-code-block-tree-file collapse show" id="hb-code-block-tree-{{ .pid }}">
+        {{ if $children }}
+          <a
+            class="hb-code-block-tree-file-name text-decoration-none text-body"
+            data-bs-toggle="collapse"
+            href="#hb-code-block-tree-{{ .id }}"
+            role="button"
+            aria-expanded="true"
+            aria-controls="hb-code-block-tree-{{ .id }}">
+            {{ .name }}
+          </a>
+        {{ else }}
+          <span>{{ .name }}</span>
+        {{ end }}
+        {{ partial "hb/modules/code-block-tree/walk" (dict "Files" $.Files "PID" .id) }}
+      </div>
+    {{ end }}
+  </div>
+{{ end }}

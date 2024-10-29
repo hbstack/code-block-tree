@@ -1,0 +1,5 @@
+{{ $title := "" }}
+{{ with index .Attributes "title" }}
+  {{ $title = . }}
+{{ end }}
+{{ partial "hb/modules/code-block-tree/index" (dict "Inner" .Inner "Title" $title) }}
